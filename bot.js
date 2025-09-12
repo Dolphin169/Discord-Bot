@@ -11,12 +11,12 @@ const CHANNEL_ID = '1415764001031327744'; // Channel to send alerts
 const ROLE_ID = '1415764663685222572';       // Role to ping for live tournaments
 let lastCheck = 'Never';
 let userRegions = new Map();
-let cachedTournaments = [];
 
 
 let announced = new Set(); // keep track of already-announced tournaments
 
 async function checkTournaments() {
+  let cachedTournaments = [];
   try {
     const res = await fetch('https://fortniteapi.io/v1/events/list?region=NAE', {
       headers: { 'Authorization': process.env.FORTNITE_API_KEY }
@@ -104,15 +104,17 @@ client.on('interactionCreate', async interaction => {
     const now = new Date();
 
     // Filter tournaments whose start time is in the future
+    const userRegion = userRegions.get(member.id) || 'NAE';
     const upcoming = cachedTournaments
-      .filter(t => new Date(t.start) > now)
-      .sort((a, b) => new Date(a.start) - new Date(b.start));
+        .filter(t => new Date(t.start) > now)
+        .sort((a, b) => new Date(a.start) - new Date(b.start));
 
-    if (upcoming.length === 0) {
+    if (upcoming.length === 0) {  
       await interaction.reply('No upcoming tournaments found.');
     } else {
       const next = upcoming[0];
       const startTime = new Date(next.start);
+      if (isNaN(startTime)) return interaction.reply('Tournament start time is invalid.');
 
       // Optional: show time remaining
       const diffMs = startTime - now;
