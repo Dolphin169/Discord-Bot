@@ -1,0 +1,27 @@
+{
+  "scripts": {
+    "start": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Discord bot information and code",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dolphin169/Discord-Bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dolphin169/Discord-Bot/issues"
+  },
+  "homepage": "https://github.com/Dolphin169/Discord-Bot#readme",
+  "dependencies": {
+    "discord.js": "^14.22.1",
+    "dotenv": "^17.2.2",
+    "node-fetch": "^3.3.2"
+  }
+}
