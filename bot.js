@@ -11,12 +11,12 @@ const CHANNEL_ID = '1415764001031327744'; // Channel to send alerts
 const ROLE_ID = '1415764663685222572';       // Role to ping for live tournaments
 let lastCheck = 'Never';
 let userRegions = new Map();
+let cachedTournaments = [];
 
 
 let announced = new Set(); // keep track of already-announced tournaments
 
 async function checkTournaments() {
-  let cachedTournaments = [];
   try {
     const res = await fetch('https://fortniteapi.io/v1/events/list?region=NAE', {
       headers: { 'Authorization': process.env.FORTNITE_API_KEY }
@@ -57,7 +57,6 @@ async function checkTournaments() {
       // Send one message if no tournaments are live
       //await channel.send('No Fortnite tournaments are live right now.');
     }
-
   } catch (err) {
     console.error('Error checking tournaments:', err);
   }
