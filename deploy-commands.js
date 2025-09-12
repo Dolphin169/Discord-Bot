@@ -7,7 +7,7 @@ const commands = [
     .setDescription('Replies with Pong!')
 ].map(command => command.toJSON());
 
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 try {
   console.log('Started refreshing slash commands...');
