@@ -48,7 +48,7 @@ async function checkTournaments() {
       }
     } else {
       // Send one message if no tournaments are live
-      await channel.send('No Fortnite tournaments are live right now.');
+      //await channel.send('No Fortnite tournaments are live right now.');
     }
 
   } catch (err) {
