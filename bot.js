@@ -102,12 +102,28 @@ client.on('interactionCreate', async interaction => {
   }
   else if (commandName === 'next') {
     const now = new Date();
-    const upcoming = cachedTournaments.filter(t => t.start > now).sort((a,b) => a.start - b.start);
+
+    // Filter tournaments whose start time is in the future
+    const upcoming = cachedTournaments
+      .filter(t => new Date(t.start) > now)
+      .sort((a, b) => new Date(a.start) - new Date(b.start));
+
     if (upcoming.length === 0) {
       await interaction.reply('No upcoming tournaments found.');
     } else {
       const next = upcoming[0];
-      await interaction.reply(`Next tournament: **${next.name}** starts at ${next.start.toUTCString()}`);
+      const startTime = new Date(next.start);
+
+      // Optional: show time remaining
+      const diffMs = startTime - now;
+      const diffMinutes = Math.floor(diffMs / 60000);
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+
+      await interaction.reply(
+        `Next tournament: **${next.name}** starts at ${startTime.toUTCString()} ` +
+        `(in ${hours}h ${minutes}m)`
+      );
     }
   }
   else if (commandName === 'live') {
