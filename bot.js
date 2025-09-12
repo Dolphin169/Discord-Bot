@@ -9,6 +9,10 @@ const client = new Client({
 // Replace these with your Discord info
 const CHANNEL_ID = '1415764001031327744'; // Channel to send alerts
 const ROLE_ID = '1415764663685222572';       // Role to ping for live tournaments
+let lastCheck = 'Never';
+let userRegions = new Map();
+let cachedTournaments = [];
+
 
 let announced = new Set(); // keep track of already-announced tournaments
 
@@ -25,6 +29,9 @@ async function checkTournaments() {
 
     const data = await res.json();
     const now = new Date();
+
+    cachedTournaments = data.events || [];
+    lastCheck = new Date().toUTCString();
 
     // Find all tournaments currently live
     const liveTournaments = (data.events || []).filter(event => {
@@ -70,16 +77,62 @@ client.once('ready', async () => {
   setInterval(checkTournaments, 5 * 60 * 1000);
 });
 
-client.login(process.env.TOKEN);
-
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
-});
-
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  if (interaction.commandName === 'ping') {
+  const { commandName, options, member, guild } = interaction;
+
+  if (commandName === 'ping') {
     await interaction.reply('Pong!');
   }
+  else if (commandName === 'status') {
+    await interaction.reply(`Bot is online. Last check: ${lastCheck}`);
+  }
+  else if (commandName === 'help') {
+    await interaction.reply(`
+    **Commands:**
+    /ping - Check if the bot is online
+    /status - Show bot status
+    /help - List all commands
+    /next - Show next tournament
+    /live - Show currently live tournaments
+    /region [region] - Set or view preferred region
+    /myrole - Check subscription status
+    `);
+  }
+  else if (commandName === 'next') {
+    const now = new Date();
+    const upcoming = cachedTournaments.filter(t => t.start > now).sort((a,b) => a.start - b.start);
+    if (upcoming.length === 0) {
+      await interaction.reply('No upcoming tournaments found.');
+    } else {
+      const next = upcoming[0];
+      await interaction.reply(`Next tournament: **${next.name}** starts at ${next.start.toUTCString()}`);
+    }
+  }
+  else if (commandName === 'live') {
+    const now = new Date();
+    const live = cachedTournaments.filter(t => now >= t.start && now <= t.end);
+    if (live.length === 0) {
+      await interaction.reply('No tournaments are live right now.');
+    } else {
+      const names = live.map(t => t.name).join(', ');
+      await interaction.reply(`Live tournament(s): **${names}**`);
+    }
+  }
+  else if (commandName === 'region') {
+    const region = options.getString('region');
+    if (region) {
+      userRegions.set(member.id, region.toUpperCase());
+      await interaction.reply(`Your preferred region is now set to **${region.toUpperCase()}**`);
+    } else {
+      const current = userRegions.get(member.id) || 'Not set';
+      await interaction.reply(`Your preferred region: **${current}**`);
+    }
+  }
+  else if (commandName === 'myrole') {
+    const hasRole = member.roles.cache.has(ROLE_ID);
+    await interaction.reply(hasRole ? 'You are subscribed to alerts.' : 'You are not subscribed to alerts.');
+  }
 });
+client.login(process.env.TOKEN);

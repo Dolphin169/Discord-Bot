@@ -2,9 +2,18 @@ import { REST, Routes, SlashCommandBuilder } from 'discord.js';
 import 'dotenv/config';
 
 const commands = [
-  new SlashCommandBuilder()
-    .setName('ping')
-    .setDescription('Replies with Pong!')
+  new SlashCommandBuilder().setName('ping').setDescription('Check if the bot is online'),
+  new SlashCommandBuilder().setName('status').setDescription('Shows bot status and last check'),
+  new SlashCommandBuilder().setName('help').setDescription('Lists all commands'),
+  new SlashCommandBuilder().setName('next').setDescription('Shows the next Fortnite tournament'),
+  new SlashCommandBuilder().setName('live').setDescription('Shows currently live tournaments'),
+  new SlashCommandBuilder().setName('region').setDescription('Set or view your preferred Fortnite region')
+    .addStringOption(option =>
+    option.setName('region')
+    .setDescription('Region code, e.g., NAE, NAW, EU')
+    .setRequired(false)
+    ),
+  new SlashCommandBuilder().setName('myrole').setDescription('Check if you are subscribed to alerts')
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
