@@ -30,7 +30,16 @@ async function checkTournaments() {
     const data = await res.json();
     const now = new Date();
 
-    cachedTournaments = data.events || [];
+    cachedTournaments = data.events.map(e => ({
+      name_line1: e.name_line1,
+      name_line2: e.name_line2,
+      beginTime: e.beginTime,
+      endTime: e.endTime,
+      region: e.region
+    }));
+
+    console.log(cachedTournaments)
+
     lastCheck = new Date().toUTCString();
 
     // Find all tournaments currently live
@@ -102,27 +111,31 @@ client.on('interactionCreate', async interaction => {
   else if (commandName === 'next') {
     const now = new Date();
 
-    // Filter tournaments whose start time is in the future
+    // Get user's region or fallback to NAC
     const userRegion = userRegions.get(member.id) || 'NAC';
-    const upcoming = cachedTournaments.filter(t => new Date(t.start) > now).sort((a, b) => new Date(a.start) - new Date(b.start));
-    if (upcoming.length === 0) {  
+
+    // Only future tournaments in this region
+    const upcoming = cachedTournaments
+      .filter(t => t.region === userRegion && new Date(t.beginTime) > now)
+      .sort((a, b) => new Date(a.beginTime) - new Date(b.beginTime));
+
+    if (upcoming.length === 0) {
+      await interaction.reply('No upcoming tournaments found.');
       return;
-    } else {
-      const next = upcoming[0];
-      const startTime = new Date(next.start);
-      if (isNaN(startTime)) return interaction.reply('Tournament start time is invalid.');
-
-      // Optional: show time remaining
-      const diffMs = startTime - now;
-      const diffMinutes = Math.floor(diffMs / 60000);
-      const hours = Math.floor(diffMinutes / 60);
-      const minutes = diffMinutes % 60;
-
-      await interaction.reply(
-        `Next tournament: **${next.name}** starts at ${startTime.toUTCString()} ` +
-        `(in ${hours}h ${minutes}m)`
-      );
     }
+
+    const next = upcoming[0];
+    const startTime = new Date(next.beginTime);
+
+    const diffMs = startTime - now;
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+
+    await interaction.reply(
+      `Next tournament: **${next.name_line1} - ${next.name_line2}** starts at ${startTime.toUTCString()} ` +
+      `(in ${hours}h ${minutes}m)`
+    );
     return;
   }
   else if (commandName === 'live') {
@@ -153,4 +166,5 @@ client.on('interactionCreate', async interaction => {
   }
   return;
 });
+
 client.login(process.env.TOKEN);
