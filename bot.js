@@ -31,14 +31,13 @@ async function checkTournaments() {
     const now = new Date();
 
     cachedTournaments = data.events.map(e => ({
+      id: e.id,
       name_line1: e.name_line1,
       name_line2: e.name_line2,
       beginTime: e.beginTime,
       endTime: e.endTime,
       region: e.region
     }));
-
-    console.log(cachedTournaments)
 
     lastCheck = new Date().toUTCString();
 
@@ -110,33 +109,31 @@ client.on('interactionCreate', async interaction => {
   }
   else if (commandName === 'next') {
     const now = new Date();
-
-    // Get user's region or fallback to NAC
     const userRegion = userRegions.get(member.id) || 'NAC';
 
-    // Only future tournaments in this region
+    const amount = options.getInteger('amount') ?? 1; // default to 3 if not given
+
     const upcoming = cachedTournaments
       .filter(t => t.region === userRegion && new Date(t.beginTime) > now)
-      .sort((a, b) => new Date(a.beginTime) - new Date(b.beginTime));
+      .sort((a, b) => new Date(a.beginTime) - new Date(b.beginTime))
+      .slice(0, amount);
 
     if (upcoming.length === 0) {
       await interaction.reply('No upcoming tournaments found.');
       return;
     }
 
-    const next = upcoming[0];
-    const startTime = new Date(next.beginTime);
+    const lines = upcoming.map(t => {
+      const start = new Date(t.beginTime);
+      const diffMs = start - now;
+      const diffMinutes = Math.floor(diffMs / 60000);
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
 
-    const diffMs = startTime - now;
-    const diffMinutes = Math.floor(diffMs / 60000);
-    const hours = Math.floor(diffMinutes / 60);
-    const minutes = diffMinutes % 60;
+      return `• **${t.id}** **${t.name_line1} - ${t.name_line2}** at ${start.toUTCString()} (in ${hours}h ${minutes}m)`;
+    });
 
-    await interaction.reply(
-      `Next tournament: **${next.name_line1} - ${next.name_line2}** starts at ${startTime.toUTCString()} ` +
-      `(in ${hours}h ${minutes}m)`
-    );
-    return;
+    await interaction.reply(`Next ${upcoming.length} upcoming tournaments:\n${lines.join('\n')}`);
   }
   else if (commandName === 'live') {
     const now = new Date();

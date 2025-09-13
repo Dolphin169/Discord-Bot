@@ -5,7 +5,13 @@ const commands = [
   new SlashCommandBuilder().setName('ping').setDescription('Check if the bot is online'),
   new SlashCommandBuilder().setName('status').setDescription('Shows bot status and last check'),
   new SlashCommandBuilder().setName('help').setDescription('Lists all commands'),
-  new SlashCommandBuilder().setName('next').setDescription('Shows the next Fortnite tournament'),
+  new SlashCommandBuilder().setName('next').setDescription('Shows the next Fortnite tournament(s)')
+  .addIntegerOption(option =>
+    option.setName('amount')
+      .setDescription('How many tournaments to show')
+      .setMinValue(1)
+      .setMaxValue(10)
+  ),
   new SlashCommandBuilder().setName('live').setDescription('Shows currently live tournaments'),
   new SlashCommandBuilder().setName('region').setDescription('Set or view your preferred Fortnite region')
     .addStringOption(option =>
